@@ -17,4 +17,4 @@ And couple of (soon to be published) in house designs:
 
 ### Video demo
 
-[![demo](https://openscopeproject.org/InteractiveHtmlBomDemo/gif/capture.gif)]
+![demo](https://openscopeproject.org/InteractiveHtmlBomDemo/gif/capture.gif)
