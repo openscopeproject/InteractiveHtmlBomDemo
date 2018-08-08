@@ -14,3 +14,7 @@ And couple of (soon to be published) in house designs:
 
 -   [HP34401a DMM OLED mod](https://openscopeproject.org/InteractiveHtmlBomDemo/hp34401a_oled/ibom.html)
 -   [OSPx201](https://openscopeproject.org/InteractiveHtmlBomDemo/OSPx201/ibom.html)
+
+### Video demo
+
+[![demo](https://openscopeproject.org/InteractiveHtmlBomDemo/gif/capture.gif)]
