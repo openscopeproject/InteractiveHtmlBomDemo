@@ -10,10 +10,6 @@
   --pcb-edge-color: black;
 }
 
-:root .dark {
-  --pcb-edge-color: #eee;
-}
-
 html, body {
   margin: 0px;
   height: 100%;
@@ -21,6 +17,7 @@ html, body {
 }
 
 .dark {
+  --pcb-edge-color: #eee;
   background-color: #252c30;
   color: #eee;
 }
@@ -158,6 +155,14 @@ canvas:active {
   background-color: #3b4749;
 }
 
+.bom tr.highlighted:nth-child(n) {
+  background-color: #cfc;
+}
+
+.dark .bom tr.highlighted:nth-child(n) {
+  background-color: #226022;
+}
+
 .bom tr:nth-child(even) {
   background-color: #f2f2f2;
 }
@@ -168,14 +173,6 @@ canvas:active {
 
 .bom tr {
   transition: background-color 0.2s;
-}
-
-.bom tr:hover {
-  background-color: #cfc;
-}
-
-.dark .bom tr:hover {
-  background-color: #226022;
 }
 
 .bom .numCol {
@@ -885,7 +882,10 @@ var bomsplit;
 var canvassplit;
 var canvaslayout = "default";
 var bomlayout = "default";
+var currentHighlightedRowId;
+var highlightHandlers = [];
 var highlightedRefs = [];
+var checkboxes = [];
 var bomCheckboxes = "";
 var storage;
 
@@ -984,8 +984,16 @@ function createCheckboxChangeHandler(checkbox, references) {
   }
 }
 
-function createRowMouseEnterHandler(refs) {
+function createRowHighlightHandler(rowid, refs) {
   return function() {
+    if (currentHighlightedRowId) {
+      if (currentHighlightedRowId == rowid) {
+        return;
+      }
+      document.getElementById(currentHighlightedRowId).classList.remove("highlighted");
+    }
+    document.getElementById(rowid).classList.add("highlighted");
+    currentHighlightedRowId = rowid;
     highlightedRefs = refs;
     drawHighlights();
   }
@@ -1028,7 +1036,7 @@ function highlightFilter(s) {
   }
   var r = "";
   var pos = 0;
-  for (i in parts) {
+  for (var i in parts) {
     if (i > 0) {
       r += '<mark class="highlight">' +
         s.substring(pos, pos + filter.length) +
@@ -1075,6 +1083,8 @@ function populateBomHeader() {
 }
 
 function populateBomBody() {
+  highlightHandlers = [];
+  currentHighlightedRowId = null;
   var first = true;
   switch (canvaslayout) {
     case 'F':
@@ -1087,7 +1097,7 @@ function populateBomBody() {
       bomtable = pcbdata.bom.B;
       break;
   }
-  for (i in bomtable) {
+  for (var i in bomtable) {
     var bomentry = bomtable[i];
     if (filter && !entryMatches(bomentry)) {
       continue;
@@ -1134,13 +1144,64 @@ function populateBomBody() {
     td.textContent = bomentry[3].length;
     tr.appendChild(td);
     bom.appendChild(tr);
-    tr.onmouseenter = createRowMouseEnterHandler(references);
+    var handler = createRowHighlightHandler(tr.id, references);
+    tr.onmousemove = handler;
+    highlightHandlers.push({
+      id: tr.id,
+      handler: handler
+    });
     if ((filter || reflookup) && first) {
       highlightedRefs = references;
       drawHighlights();
       first = false;
     }
   }
+}
+
+function highlightPreviousRow() {
+  if (!currentHighlightedRowId) {
+    highlightHandlers[highlightHandlers.length - 1].handler();
+  } else {
+    if (highlightHandlers.length > 1 &&
+      highlightHandlers[0].id == currentHighlightedRowId) {
+      highlightHandlers[highlightHandlers.length - 1].handler();
+    } else {
+      for (var i = 0; i < highlightHandlers.length - 1; i++) {
+        if (highlightHandlers[i + 1].id == currentHighlightedRowId) {
+          highlightHandlers[i].handler();
+          break;
+        }
+      }
+    }
+  }
+  document.getElementById(currentHighlightedRowId).scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+    inline: "nearest"
+  });
+}
+
+function highlightNextRow() {
+  if (!currentHighlightedRowId) {
+    highlightHandlers[0].handler();
+  } else {
+    if (highlightHandlers.length > 1 &&
+      highlightHandlers[highlightHandlers.length - 1].id == currentHighlightedRowId) {
+      highlightHandlers[0].handler();
+    } else {
+      for (var i = 1; i < highlightHandlers.length; i++) {
+        if (highlightHandlers[i - 1].id == currentHighlightedRowId) {
+          highlightHandlers[i].handler();
+          break;
+        }
+      }
+    }
+  }
+  document.getElementById(currentHighlightedRowId).scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+    inline: "nearest"
+  });
 }
 
 function populateBomTable() {
@@ -1291,8 +1352,33 @@ function changeBomLayout(layout) {
   changeCanvasLayout(canvaslayout);
 }
 
+function focusInputField(input) {
+  input.scrollIntoView(false);
+  input.focus();
+  input.select();
+}
+
+function focusFilterField() {
+  focusInputField(document.getElementById("filter"));
+}
+
+function focusRefLookupField() {
+  focusInputField(document.getElementById("reflookup"));
+}
+
+function toggleBomCheckbox(bomrowid, checkboxnum) {
+  if (!bomrowid || checkboxnum > checkboxes.length) {
+    return;
+  }
+  var bomrow = document.getElementById(bomrowid);
+  var checkbox = bomrow.childNodes[checkboxnum].childNodes[0];
+  checkbox.checked = !checkbox.checked;
+  checkbox.indeterminate = false;
+  checkbox.onchange();
+}
+
 function removeGutterNode(node) {
-  for (i = 0; i < node.childNodes.length; i++) {
+  for (var i = 0; i < node.childNodes.length; i++) {
     if (node.childNodes[i].classList &&
       node.childNodes[i].classList.contains("gutter")) {
       node.removeChild(node.childNodes[i]);
@@ -1310,6 +1396,62 @@ function setBomCheckboxes(value) {
   bomCheckboxes = value;
   writeStorage("bomCheckboxes", value);
   populateBomTable();
+}
+
+document.onkeydown = function(e) {
+  switch (e.key) {
+    case "ArrowUp":
+      highlightPreviousRow();
+      e.preventDefault();
+      break;
+    case "ArrowDown":
+      highlightNextRow();
+      e.preventDefault();
+      break;
+    default:
+      break;
+  }
+  if (e.altKey) {
+    switch (e.key) {
+      case "f":
+        focusFilterField();
+        e.preventDefault();
+        break;
+      case "r":
+        focusRefLookupField();
+        e.preventDefault();
+        break;
+      case "z":
+        changeBomLayout("BOM");
+        e.preventDefault();
+        break;
+      case "x":
+        changeBomLayout("LR");
+        e.preventDefault();
+        break;
+      case "c":
+        changeBomLayout("TB");
+        e.preventDefault();
+        break;
+      case "v":
+        changeCanvasLayout("F");
+        e.preventDefault();
+        break;
+      case "b":
+        changeCanvasLayout("FB");
+        e.preventDefault();
+        break;
+      case "n":
+        changeCanvasLayout("B");
+        e.preventDefault();
+        break;
+      default:
+        break;
+    }
+    if (e.key >= '1' && e.key <= '9') {
+      toggleBomCheckbox(currentHighlightedRowId, parseInt(e.key));
+    }
+  }
 }
 
 window.onload = function(e) {
@@ -1433,9 +1575,9 @@ window.matchMedia("print").addListener(resizeAll);
   <div id="bot" class="split" style="height: calc(100% - 80px)">
     <div id="bomdiv" class="split split-horizontal">
       <div style="width: 100%">
-        <input class="searchbox reflookup hideonprint" type="text" placeholder="Ref lookup"
+        <input id="reflookup" class="searchbox reflookup hideonprint" type="text" placeholder="Ref lookup"
                oninput="updateRefLookup(this.value)">
-        <input class="searchbox filter hideonprint" type="text" placeholder="Filter"
+        <input id="filter" class="searchbox filter hideonprint" type="text" placeholder="Filter"
                oninput="updateFilter(this.value)">
       </div>
       <div id="dbg"></div>
