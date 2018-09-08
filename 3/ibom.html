@@ -43,7 +43,8 @@ button {
 }
 
 .dark button {
-  background-color: #c3b7b5; /* This will be inverted */
+  /* This will be inverted */
+  background-color: #c3b7b5;
 }
 
 button.depressed {
@@ -52,7 +53,8 @@ button.depressed {
 }
 
 .dark button.depressed {
-  background-color: #b3b; /* This will be inverted */
+  /* This will be inverted */
+  background-color: #b3b;
 }
 
 button:focus {
@@ -344,8 +346,7 @@ mark.highlight {
   background-color: #eee;
 }
 
-.dark .menu:hover .menubtn {
-}
+.dark .menu:hover .menubtn {}
 
 .menu-label {
   display: inline-block;
@@ -398,20 +399,112 @@ mark.highlight {
 }
 
 ::-webkit-scrollbar {
-    width: 8px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #aaa;
+  background: #aaa;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #666;
-    border-radius: 3px;
+  background: #666;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #555;
+  background: #555;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  margin: 3px 0;
+  padding: 0;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+  border-radius: 3px;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider:focus {
+  outline: none;
+}
+
+.slider::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;
+  background: #d3d3d3;
+  border-radius: 3px;
+  border: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #0a0;
+  cursor: pointer;
+  margin-top: -4px;
+}
+
+.dark .slider::-webkit-slider-thumb {
+  background: #3d3;
+}
+
+.slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #0a0;
+  cursor: pointer;
+}
+
+.slider::-moz-range-track {
+  height: 8px;
+  background: #d3d3d3;
+  border-radius: 3px;
+}
+
+.dark .slider::-moz-range-thumb {
+  background: #3d3;
+}
+
+.slider::-ms-track {
+  width: 100%;
+  height: 8px;
+  border-width: 3px 0;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+  transition: opacity .2s;
+}
+
+.slider::-ms-fill-lower {
+  background: #d3d3d3;
+  border: none;
+  border-radius: 3px;
+}
+
+.slider::-ms-fill-upper {
+  background: #d3d3d3;
+  border: none;
+  border-radius: 3px;
+}
+
+.slider::-ms-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #0a0;
+  cursor: pointer;
+  margin: 0;
 }
 
   </style>
@@ -434,6 +527,7 @@ var pcbdata = {"modules": {"R4": {"layer": "F", "center": [152.781, 64.134999999
 /* PCB rendering code */
 
 var redrawOnDrag = true;
+var boardRotation = 0;
 
 function deg2rad(deg) {
   return deg * Math.PI / 180;
@@ -707,6 +801,7 @@ function prepareCanvas(canvas, flip, transform) {
     ctx.scale(-1, 1);
   }
   ctx.translate(transform.x, transform.y);
+  ctx.rotate(deg2rad(boardRotation));
   ctx.scale(transform.s, transform.s);
 }
 
@@ -717,6 +812,26 @@ function prepareLayer(canvasdict) {
   }
 }
 
+function applyRotation(bbox) {
+  var angle = deg2rad(boardRotation);
+  var corners = [
+    [bbox.minx, bbox.miny],
+    [bbox.minx, bbox.maxy],
+    [bbox.maxx, bbox.miny],
+    [bbox.maxx, bbox.maxy],
+  ];
+  corners = corners.map(v => [
+    v[0] * Math.cos(angle) - v[1] * Math.sin(angle),
+    v[0] * Math.sin(angle) + v[1] * Math.cos(angle)
+  ]);
+  return {
+    minx: corners.reduce((a, v) => Math.min(a, v[0]), Infinity),
+    miny: corners.reduce((a, v) => Math.min(a, v[1]), Infinity),
+    maxx: corners.reduce((a, v) => Math.max(a, v[0]), -Infinity),
+    maxy: corners.reduce((a, v) => Math.max(a, v[1]), -Infinity),
+  }
+}
+
 function recalcLayerScale(canvasdict) {
   canvasdivid = {
     "F": "frontcanvas",
@@ -724,7 +839,7 @@ function recalcLayerScale(canvasdict) {
   } [canvasdict.layer];
   var width = document.getElementById(canvasdivid).clientWidth * 2;
   var height = document.getElementById(canvasdivid).clientHeight * 2;
-  var bbox = pcbdata.edges_bbox;
+  var bbox = applyRotation(pcbdata.edges_bbox);
   var scalefactor = 0.98 * Math.min(
     width / (bbox.maxx - bbox.minx),
     height / (bbox.maxy - bbox.miny)
@@ -899,6 +1014,13 @@ function addMouseHandlers(div, layerdict) {
 function setRedrawOnDrag(value) {
   redrawOnDrag = value;
   writeStorage("redrawOnDrag", value);
+}
+
+function setBoardRotation(value) {
+  boardRotation = value * 5;
+  writeStorage("boardRotation", boardRotation);
+  document.getElementById("rotationDegree").textContent = boardRotation;
+  resizeAll();
 }
 
 function initRender() {
@@ -1586,6 +1708,14 @@ window.onload = function(e) {
     document.getElementById("highlightpin1Checkbox").checked = true;
     setHighlightPin1(true);
   }
+  boardRotation = readStorage("boardRotation");
+  if (boardRotation === null) {
+    boardRotation = 0;
+  } else {
+    boardRotation = parseInt(boardRotation);
+  }
+  document.getElementById("boardRotation").value = boardRotation / 5;
+  document.getElementById("rotationDegree").textContent = boardRotation;
   // Triggers render
   changeBomLayout(bomlayout);
 }
@@ -1620,6 +1750,11 @@ window.matchMedia("print").addListener(resizeAll);
           <label class="menu-label">
             <input id="dragCheckbox" type="checkbox" checked onchange="setRedrawOnDrag(this.checked)">
             Continuous redraw on drag
+          </label>
+          <label class="menu-label">
+            <span>Board rotation</span>
+            <span style="float: right"><span id="rotationDegree">0</span>&#176;</span>
+            <input id="boardRotation" type="range" min="-36" max="36" value="0" class="slider" oninput="setBoardRotation(this.value)">
           </label>
           <label class="menu-label">
             <div style="margin-left: 5px">Bom checkboxes</div>
