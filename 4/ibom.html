@@ -928,6 +928,8 @@ function drawtext(ctx, text, color, flip) {
   }
   var interline = (text.height * 1.5 + text.thickness) / 2;
   var txt = text.text.split("\n");
+  // KiCad ignores last empty line.
+  if (txt[txt.length-1] == '') txt.pop();
   ctx.rotate(deg2rad(angle));
   ctx.fillStyle = color;
   ctx.strokeStyle = color;
@@ -1138,20 +1140,19 @@ function drawEdges(canvas, scalefactor) {
   }
 }
 
-function drawModules(canvas, layer, scalefactor, highlightedModules) {
+function drawModules(canvas, layer, scalefactor, highlight) {
   var ctx = canvas.getContext("2d");
   ctx.lineWidth = 3 / scalefactor;
   var style = getComputedStyle(topmostdiv);
   var padcolor = style.getPropertyValue('--pad-color');
   var outlinecolor = style.getPropertyValue('--pin1-outline-color');
-  if (highlightedModules.length > 0) {
+  if (highlight > 0) {
     padcolor = style.getPropertyValue('--pad-color-highlight');
     outlinecolor = style.getPropertyValue('--pin1-outline-color-highlight');
   }
   for (var i = 0; i < pcbdata.modules.length; i++) {
     var mod = pcbdata.modules[i];
-    var highlight = highlightedModules.includes(i);
-    if (highlightedModules.length == 0 || highlight) {
+    if (!highlight || highlightedModules.includes(i)) {
       drawModule(ctx, layer, scalefactor, mod, padcolor, outlinecolor, highlight);
     }
   }
@@ -1181,7 +1182,7 @@ function clearCanvas(canvas) {
 function drawHighlightsOnLayer(canvasdict) {
   clearCanvas(canvasdict.highlight);
   drawModules(canvasdict.highlight, canvasdict.layer,
-    canvasdict.transform.s, highlightedModules);
+    canvasdict.transform.s * canvasdict.transform.zoom, true);
 }
 
 function drawHighlights() {
@@ -1193,7 +1194,8 @@ function drawBackground(canvasdict) {
   clearCanvas(canvasdict.bg);
   clearCanvas(canvasdict.silk);
   drawEdges(canvasdict.bg, canvasdict.transform.s);
-  drawModules(canvasdict.bg, canvasdict.layer, canvasdict.transform.s, []);
+  drawModules(canvasdict.bg, canvasdict.layer,
+    canvasdict.transform.s * canvasdict.transform.zoom, false);
   drawSilkscreen(canvasdict.silk, canvasdict.layer, canvasdict.transform.s);
 }
 
@@ -1272,7 +1274,6 @@ function recalcLayerScale(canvasdict) {
     canvas.style.width = (width / 2) + "px";
     canvas.style.height = (height / 2) + "px";
   }
-  console.log("Scale factor " + canvasdivid + ": ", canvasdict.transform);
 }
 
 function redrawCanvas(layerdict) {
@@ -1333,7 +1334,6 @@ function handleMouseClick(e, layerdict) {
   var modules = bboxScan(layerdict.layer, v[0], v[1]);
   if (modules.length > 0) {
     modulesClicked(modules);
-    drawHighlights();
   }
 }
 
@@ -1401,7 +1401,6 @@ function handleMouseWheel(e, layerdict) {
   t.panx += 2 * e.offsetX * zoomd;
   t.pany += 2 * e.offsetY * zoomd;
   redrawCanvas(layerdict);
-  console.log(layerdict.transform.zoom);
 }
 
 function addMouseHandlers(div, layerdict) {
@@ -1489,6 +1488,7 @@ var bomsplit;
 var canvassplit;
 var canvaslayout = "default";
 var bomlayout = "default";
+var initDone = false;
 var bomSortFunction = null;
 var currentSortColumn = null;
 var currentSortOrder = null;
@@ -1511,15 +1511,19 @@ function setDarkMode(value) {
     topmostdiv.classList.remove("dark");
   }
   writeStorage("darkmode", value);
-  redrawCanvas(allcanvas.front);
-  redrawCanvas(allcanvas.back);
+  if (initDone) {
+    redrawCanvas(allcanvas.front);
+    redrawCanvas(allcanvas.back);
+  }
 }
 
 function setHighlightPin1(value) {
   writeStorage("highlightpin1", value);
   highlightpin1 = value;
-  redrawCanvas(allcanvas.front);
-  redrawCanvas(allcanvas.back);
+  if (initDone) {
+    redrawCanvas(allcanvas.front);
+    redrawCanvas(allcanvas.back);
+  }
 }
 
 function getStoredCheckboxRefs(checkbox) {
@@ -2242,6 +2246,7 @@ window.onload = function(e) {
   bomhead = document.getElementById("bomhead");
   filter = "";
   reflookup = "";
+  initDone = true;
   // Triggers render
   changeBomLayout(bomlayout);
 }
