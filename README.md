@@ -10,8 +10,9 @@ Some of the KiCad demo boards:
 -   [XILINX XC95108 board](https://openscopeproject.org/InteractiveHtmlBomDemo/3/ibom.html)
 -   [XILINX 5213 board](https://openscopeproject.org/InteractiveHtmlBomDemo/4/ibom.html)
 
-Big complex board:
+Big complex boards:
 -   [motherboard](https://openscopeproject.org/InteractiveHtmlBomDemo/motherboard/ibom.html) from [c4puter on github](https://github.com/c4puter/motherboard)
+-   [frankenso](https://openscopeproject.org/InteractiveHtmlBomDemo/frankenso/ibom.html) from [rusefi](https://github.com/rusefi/rusefi/tree/master/hardware/frankenso)
 
 And couple of in house designs:
 
