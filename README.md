@@ -18,6 +18,7 @@ And couple of in house designs:
 
 -   [HP34401a DMM OLED mod](https://openscopeproject.org/InteractiveHtmlBomDemo/html/hp34401a_oled.html) [[kicad files](https://github.com/openscopeproject/HP34401a-OLED-HW)]
 -   [OSPx201](https://openscopeproject.org/InteractiveHtmlBomDemo/html/OSPx201.html)
+-   [Keithley 1950 option board](https://openscopeproject.org/InteractiveHtmlBomDemo/html/Keithley1950.html)
 
 ### EasyEDA project demos
 -   [2.4G_Telecontrol_Board_V1.0](https://openscopeproject.org/InteractiveHtmlBomDemo/html/2.4G_Telecontrol_Board%20V1.0-PCB.html) [source](https://easyeda.com/UserSupport/2-4g_telecontrol_board_v1-0)
