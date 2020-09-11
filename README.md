@@ -13,6 +13,7 @@ Some of the KiCad demo boards:
 Big complex boards:
 -   [motherboard](https://openscopeproject.org/InteractiveHtmlBomDemo/html/motherboard.html) from [c4puter on github](https://github.com/c4puter/motherboard)
 -   [frankenso](https://openscopeproject.org/InteractiveHtmlBomDemo/html/frankenso.html) from [rusefi](https://github.com/rusefi/rusefi/tree/master/hardware/frankenso)
+-   [Imx6 openRex KiCad port](https://openscopeproject.org/InteractiveHtmlBomDemo/html/rex.html) from [jasuramme](https://gitlab.com/jasuramme/imx6-openrex-kicad-port)
 
 And couple of in house designs:
 
