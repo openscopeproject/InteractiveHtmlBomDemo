@@ -26,7 +26,7 @@ And couple of in house designs:
 -   [Tesseract Guitar Practice Amp](https://openscopeproject.org/InteractiveHtmlBomDemo/html/Tesseract_Guitar_Amp.html) [source](https://easyeda.com/example/Tesseract_Guitar_Practice_Amp-MjP71jBni)
 
 ### Eagle project demo
--   [MZMFC v8](https://openscopeproject.org/InteractiveHtmlBomDemo/html/) [source])(https://github.com/Funkenjaeger/brd2json/tree/main/example)
+-   [MZMFC v8](https://openscopeproject.org/InteractiveHtmlBomDemo/html/MZMFC_v8.html) [source](https://github.com/Funkenjaeger/brd2json/tree/main/example)
 
 ### Video demo
 
