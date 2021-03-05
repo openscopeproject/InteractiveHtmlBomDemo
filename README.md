@@ -25,6 +25,9 @@ And couple of in house designs:
 -   [2.4G_Telecontrol_Board_V1.0](https://openscopeproject.org/InteractiveHtmlBomDemo/html/2.4G_Telecontrol_Board%20V1.0-PCB.html) [source](https://easyeda.com/UserSupport/2-4g_telecontrol_board_v1-0)
 -   [Tesseract Guitar Practice Amp](https://openscopeproject.org/InteractiveHtmlBomDemo/html/Tesseract_Guitar_Amp.html) [source](https://easyeda.com/example/Tesseract_Guitar_Practice_Amp-MjP71jBni)
 
+### Eagle project demo
+-   [MZMFC v8](https://openscopeproject.org/InteractiveHtmlBomDemo/html/) [source])(https://github.com/Funkenjaeger/brd2json/tree/main/example)
+
 ### Video demo
 
 ![demo](https://openscopeproject.org/InteractiveHtmlBomDemo/gif/capture.gif)
